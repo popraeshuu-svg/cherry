@@ -44,38 +44,25 @@ def run_script():
                     temp.append(record.request_ip)
         devices = remna_client.get_user_hwid_devices(user.uuid).devices
         for device in devices:
-            result.append({
-                'user_uuid': user.uuid,
-                'ips': ','.join(temp),
-                'user_agent': device.user_agent,
-                'model': device.device_model,
-                'platform': device.platform,
-                'hwid': device.hwid,
-                'os_version': device.os_version
-            })
-
-    # print(result[0 python main.py])
+            result.append((
+                user.uuid,
+                ','.join(temp),
+                device.user_agent,
+                device.device_model,
+                device.platform,
+                device.hwid,
+                device.os_version
+            ))
 
     cursor.execute('DELETE FROM client_device')
     conn.commit()
-    sql = "INSERT INTO client_device (user_uuid, ips, user_agent, model, platform, hwid, os_version) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    sql = """INSERT INTO client_device (user_uuid, ips, user_agent, model, platform, hwid, os_version)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)"""
 
-    record = result[0]
-
-    for record in result:
-        val = (
-            record['user_uuid'],
-            record['ips'],
-            record['user_agent'],
-            record['model'],
-            record['platform'],
-            record['hwid'],
-            record['os_version']
-        )
-        cursor.execute(sql, val)
+    cursor.executemany(sql, result)
     conn.commit()
 
-    print("запись добавлена.")
+    print("таблица обновлена.")
     cursor.close()
     conn.close()
 
